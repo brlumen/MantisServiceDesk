@@ -1,6 +1,6 @@
 <?php
 
-# Copyright (c) 2017 Grigoriy Ermolaev (igflocal@gmail.com)
+# Copyright (c) 2018 Grigoriy Ermolaev (igflocal@gmail.com)
 # Calendar for MantisBT is free software: 
 # you can redistribute it and/or modify it under the terms of the GNU
 # General Public License as published by the Free Software Foundation, 
@@ -22,7 +22,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
         $this->name = 'MantisServiceDesk';
         $this->description = '';
 
-        $this->version = '0.0.1';
+        $this->version = '1.0.1';
         $this->requires = array(
             'MantisCore' => '1.2.12',
             'jQuery' => '1.11.1'
@@ -58,7 +58,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
     }
 
     function check_issue($type_event, $t_bug_data, $f_bug_id) {
-        if ( $_REQUEST["bugnote_text"] == null && $_REQUEST["status"] != 90 && $_REQUEST["status"] != null ) {
+        if ( trim( $_REQUEST["bugnote_text"] ) == null && $_REQUEST["status"] != 90 && $_REQUEST["status"] != null ) {
 			error_parameters( plugin_lang_get( 'error_empty_field' ) );
 			trigger_error( ERROR_EMPTY_FIELD, ERROR );
 		}
