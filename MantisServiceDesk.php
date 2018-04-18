@@ -19,10 +19,11 @@ class MantisServiceDeskPlugin extends MantisPlugin {
 
     function register() {
 
-        $this->name = 'MantisServiceDesk';
-        $this->description = '';
+        $this->name = plugin_lang_get( 'name');
+        $this->description = plugin_lang_get( 'description');
+        $this->page = 'config';
 
-        $this->version = '1.0.1';
+        $this->version = '1.2.0';
         $this->requires = array(
             'MantisCore' => '1.2.12',
             'jQuery' => '1.11.1'
@@ -33,11 +34,14 @@ class MantisServiceDeskPlugin extends MantisPlugin {
         $this->url = 'http://github.com/mantisbt-plugins/MantisServiceDesk';
     }
 
-    function config() {
-        return array(
-
-        );
-    }
+   /**
+	 * Default plugin configuration.
+	 */
+	function config() {
+		return array(
+			'process_disable_project'		=> FALSE,
+		);
+	}
 
     public function errors() {
         return array(
@@ -53,17 +57,18 @@ class MantisServiceDeskPlugin extends MantisPlugin {
         $hooks = array(
             'EVENT_MENU_ISSUE' => 'change_issue',
             'EVENT_UPDATE_BUG' => 'check_issue',
+            'EVENT_MANAGE_PROJECT_UPDATE' => 'subprojects_change_status_enabled',
         );
         return $hooks;
     }
 
-    function check_issue($type_event, $t_bug_data, $f_bug_id) {
-        if ( trim( $_REQUEST["bugnote_text"] ) == null && $_REQUEST["status"] != 90 && $_REQUEST["status"] != null ) {
-			error_parameters( plugin_lang_get( 'error_empty_field' ) );
-			trigger_error( ERROR_EMPTY_FIELD, ERROR );
-		}
+    function check_issue( $type_event, $t_bug_data, $f_bug_id ) {
+        if( trim( $_REQUEST["bugnote_text"] ) == null && $_REQUEST["status"] != 90 && $_REQUEST["status"] != null ) {
+            error_parameters( plugin_lang_get( 'error_empty_field' ) );
+            trigger_error( ERROR_EMPTY_FIELD, ERROR );
+        }
     }
-    
+
     function change_issue($f_type_issue, $f_bug_id) {
      
         $tpl_bug = bug_get( $f_bug_id, true );
@@ -94,4 +99,29 @@ class MantisServiceDeskPlugin extends MantisPlugin {
             html_meta_redirect( 'bug_change_status_page.php?id='.$f_bug_id.'&new_status=30' );
         }
     }
+    
+    function subprojects_change_status_enabled( $p_event, $p_project_id ) {
+
+        $t_subprojects = project_hierarchy_get_all_subprojects( $p_project_id, plugin_config_get( 'process_disable_project' ) );
+
+        foreach( $t_subprojects as $t_subproject ) {
+
+            $t_name                 = (string) project_get_field( $t_subproject, 'name' );
+            $t_description          = (string) project_get_field( $t_subproject, 'description' );
+            $t_status               = (int) project_get_field( $t_subproject, 'status' );
+            $t_view_state           = (int) project_get_field( $t_subproject, 'view_state' );
+            $t_file_path            = (string) project_get_field( $t_subproject, 'file_path' );
+            $f_enabled              = gpc_get_bool( 'enabled' );
+            $t_inherit_global       = (boolean) project_get_field( $t_subproject, 'inherit_global' );
+
+            # Don't reveal the absolute path to non-administrators for security reasons
+            if( is_blank( $t_file_path ) && current_user_is_administrator() ) {
+                $t_file_path = config_get( 'absolute_path_default_upload_folder' );
+            }
+
+            project_update( $t_subproject, $t_name, $t_description, $t_status, $t_view_state, $t_file_path, $f_enabled, $t_inherit_global );
+            event_signal( 'EVENT_MANAGE_PROJECT_UPDATE', array( $t_subproject ) );
+        }
+    }
+
 }

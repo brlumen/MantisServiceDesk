@@ -1,5 +1,5 @@
 <?php
-# Copyright (c) 2017 Grigoriy Ermolaev (igflocal@gmail.com)
+# Copyright (c) 2018 Grigoriy Ermolaev (igflocal@gmail.com)
 
 # Calendar for MantisBT is free software: 
 # you can redistribute it and/or modify it under the terms of the GNU
@@ -16,3 +16,9 @@
 # If not, see <http://www.gnu.org/licenses/>.
 
 $s_plugin_MantisServiceDesk_error_empty_field = 'Комментарий';
+$s_plugin_MantisServiceDesk_name = 'Система учёта заявок';
+$s_plugin_MantisServiceDesk_description = 'Дополняет систему необходимыми функциями для использования в качестве системы учёта заявок';
+$s_plugin_MantisServiceDesk_config = 'Настройка';
+$s_plugin_MantisServiceDesk_process_disable_project = 'Cледует ли рассматривать проекты, которые отключены';
+$s_plugin_MantisServiceDesk_enabled = 'Вкл';
+$s_plugin_MantisServiceDesk_disabled = 'Выкл';
