@@ -48,6 +48,90 @@ print_manage_menu( );
 	</td>
 </tr>
 
+
+<tr <?php echo helper_alternate_class( )?>>
+	<td class="category" width="60%">
+		<?php echo plugin_lang_get( 'check_comments' )?>
+	</td>
+	<td class="center" width="20%">
+		<label><input type="radio" name="check_comments" value="1" <?php echo( TRUE == plugin_config_get( 'check_comments' ) ) ? 'checked="checked" ' : ''?>/>
+			<?php echo plugin_lang_get( 'enabled' )?></label>
+	</td>
+	<td class="center" width="20%">
+		<label><input type="radio" name="check_comments" value="0" <?php echo( FALSE == plugin_config_get( 'check_comments' ) ) ? 'checked="checked" ' : ''?>/>
+			<?php echo plugin_lang_get( 'disabled' )?></label>
+	</td>
+</tr>
+
+<tr <?php echo helper_alternate_class( )?> >
+	<td class="category">
+		<?php echo plugin_lang_get( 'status_to' )?>
+	</td>
+            <td style="vertical-align: top">
+            <?php 
+            $t_temp = MantisEnum::getAssocArrayIndexedByValues( lang_get( 'status_enum_string' ) );
+            $tt = plugin_config_get( 'bug_status_array' );
+            
+            foreach( MantisEnum::getAssocArrayIndexedByValues( config_get( 'status_enum_string' ) ) as $t_index_enum => $t_status_enum ) {
+                ?>
+                 
+                <label><input type="checkbox" name="bug_status_array[]" value="<?php echo $t_index_enum ?>" <?php echo( TRUE == ( $tt==null ? FALSE : in_array( $t_index_enum, $tt ) ) ) ? 'checked="checked" ' : '' ?>/><?php echo $t_temp[$t_index_enum] ?></label>
+                    <br>
+                     
+            <?php } ?>
+              </td>
+              <td style="vertical-align: top">
+            <?php 
+            $t_temp = MantisEnum::getAssocArrayIndexedByValues( lang_get( 'status_enum_string' ) );
+            $tt = plugin_config_get( 'bug_status' );
+            
+            foreach( MantisEnum::getAssocArrayIndexedByValues( config_get( 'status_enum_string' ) ) as $t_index_enum => $t_status_enum ) {
+                ?>
+                 
+                <label><input type="radio" name="bug_status" value="<?php echo $t_index_enum ?>" <?php echo $tt == $t_index_enum  ? 'checked="checked" ' : '' ?>/><?php echo $t_temp[$t_index_enum] ?></label>
+                    <br>
+                     
+            <?php } ?>
+              </td>
+</tr>
+
+
+
+
+<tr <?php echo helper_alternate_class( )?> >
+	<td class="category">
+		<?php echo plugin_lang_get( 'status_block' )?>
+	</td>
+            <td style="vertical-align: top">
+            <?php 
+            $t_temp = MantisEnum::getAssocArrayIndexedByValues( lang_get( 'status_enum_string' ) );
+            $tt = plugin_config_get( 'bug_status_block_assignation_array' );
+            
+            foreach( MantisEnum::getAssocArrayIndexedByValues( config_get( 'status_enum_string' ) ) as $t_index_enum => $t_status_enum ) {
+                ?>
+                 
+                <label><input type="checkbox" name="bug_status_block_assignation_array[]" value="<?php echo $t_index_enum ?>" <?php echo( TRUE == ( $tt==null ? FALSE : in_array( $t_index_enum, $tt ) ) ) ? 'checked="checked" ' : '' ?>/><?php echo $t_temp[$t_index_enum] ?></label>
+                    <br>
+                     
+            <?php } ?>
+              </td>
+              <td style="vertical-align: top"></td>
+</tr>
+
+<tr <?php echo helper_alternate_class( )?>>
+	<td class="category" width="60%">
+		<?php echo plugin_lang_get( 'bug_monitor_run_title' )?>
+	</td>
+	<td class="center" width="20%">
+		<label><input type="radio" name="bug_monitor_run" value="1" <?php echo( TRUE == plugin_config_get( 'bug_monitor_run' ) ) ? 'checked="checked" ' : ''?>/>
+			<?php echo plugin_lang_get( 'enabled' )?></label>
+	</td>
+	<td class="center" width="20%">
+		<label><input type="radio" name="bug_monitor_run" value="0" <?php echo( FALSE == plugin_config_get( 'bug_monitor_run' ) ) ? 'checked="checked" ' : ''?>/>
+			<?php echo plugin_lang_get( 'disabled' )?></label>
+	</td>
+</tr>
+
 <tr>
 	<td class="center" colspan="3">
 		<input type="submit" class="button" value="<?php echo lang_get( 'change_configuration' )?>" />

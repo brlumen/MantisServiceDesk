@@ -19,6 +19,11 @@ $s_plugin_MantisServiceDesk_error_empty_field = 'Комментарий';
 $s_plugin_MantisServiceDesk_name = 'Система учёта заявок';
 $s_plugin_MantisServiceDesk_description = 'Дополняет систему необходимыми функциями для использования в качестве системы учёта заявок';
 $s_plugin_MantisServiceDesk_config = 'Настройка';
-$s_plugin_MantisServiceDesk_process_disable_project = 'Cледует ли рассматривать проекты, которые отключены';
-$s_plugin_MantisServiceDesk_enabled = 'Вкл';
-$s_plugin_MantisServiceDesk_disabled = 'Выкл';
+$s_plugin_MantisServiceDesk_process_disable_project = 'Cледует ли изменять состояния дочерних проектов, которые имеют статус "Не активен"';
+$s_plugin_MantisServiceDesk_status_to = 'Статусы для автоматического перехода ИЗ -> В';
+$s_plugin_MantisServiceDesk_check_comments = 'Включить обязательное комментирование при изменении статуса заявки';
+$s_plugin_MantisServiceDesk_status_block = 'Даем выбрать ответственного только при переводе инцидента в статусы:';
+$s_plugin_MantisServiceDesk_bug_monitor_run_title = 'Включить отслеживание заявки при назначении ответственного:';
+
+$s_plugin_MantisServiceDesk_enabled = 'Да';
+$s_plugin_MantisServiceDesk_disabled = 'Нет';
