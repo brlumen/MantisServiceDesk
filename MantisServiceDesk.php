@@ -22,7 +22,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
         $this->description = plugin_lang_get( 'description' );
         $this->page        = 'config';
 
-        $this->version  = '1.3.2';
+        $this->version  = '1.3.3';
         $this->requires = array(
                                   'MantisCore' => '1.2.12',
                                   'jQuery'     => '1.11.1'
@@ -45,6 +45,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
                                   'bug_status'                         => 30,
                                   'bug_status_block_assignation_array' => array( 0 => 50 ),
                                   'bug_monitor_run'                    => TRUE,
+                                  'file_upload_multiple'               => TRUE,
         );
     }
 
@@ -65,8 +66,24 @@ class MantisServiceDeskPlugin extends MantisPlugin {
                                   'EVENT_MANAGE_PROJECT_UPDATE'  => 'subprojects_change_status_enabled',
                                   'EVENT_UPDATE_BUG_STATUS_FORM' => array( 'issue_assignate_to',
                                                             'add_me_to_monitor_form' ),
+                                  'EVENT_VIEW_BUG_EXTRA'         => 'file_upload_multiple_options',
         );
+
+
         return $hooks;
+    }
+
+    function file_upload_multiple_options( $p_type_event, array $p_bug_id ) {
+
+        if( plugin_config_get( 'file_upload_multiple' ) ) {
+            ?> 
+            <script>
+
+                document.getElementsByName("ufile[]")[0].multiple = true;
+
+            </script>
+            <?php
+        }
     }
 
     function check_issue( $type_event, $t_bug_data, $f_bug_id ) {
@@ -233,5 +250,94 @@ class MantisServiceDeskPlugin extends MantisPlugin {
 //            $time_tracking = "0:00";
 //        }
 //    }
-
+//    function custom_function_override_print_bug_view_page_custom_buttons( $p_bug_id ) {
+//
+//            $t_bug = bug_get( $p_bug_id );
+//
+//            # make sure status is allowed of assign would cause auto-set-status
+//            # workflow implementation
+//            if( ON == config_get( 'auto_set_status_to_assigned' ) && !bug_check_workflow( $t_bug->status, config_get( 'bug_assigned_status' ) ) ) {
+//
+//                # make sure current user has access to modify bugs.
+//                if( !access_has_bug_level( config_get( 'update_bug_assign_threshold', config_get( 'update_bug_threshold' ) ), $t_bug->id ) ) {
+//                    return;
+//                }
+//
+//                $t_current_user_id   = auth_get_current_user_id();
+//                $t_new_status        = ( ON == config_get( 'auto_set_status_to_assigned' ) ) ? config_get( 'bug_assigned_status' ) : $t_bug->status;
+//                $t_options           = array();
+//                $t_default_assign_to = null;
+//
+//                if( ( $t_bug->handler_id != $t_current_user_id ) && access_has_bug_level( config_get( 'handle_bug_threshold' ), $t_bug->id, $t_current_user_id )
+//                ) {
+//                    $t_options[]         = array(
+//                                              $t_current_user_id,
+//                                              '[' . lang_get( 'myself' ) . ']',
+//                    );
+//                    $t_default_assign_to = $t_current_user_id;
+//                }
+//
+//                if( ( $t_bug->handler_id != $t_bug->reporter_id ) && user_exists( $t_bug->reporter_id ) && access_has_bug_level( config_get( 'handle_bug_threshold' ), $t_bug->id, $t_bug->reporter_id )
+//                ) {
+//                    $t_options[] = array(
+//                                              $t_bug->reporter_id,
+//                                              '[' . lang_get( 'reporter' ) . ']',
+//                    );
+//
+//                    if( $t_default_assign_to === null ) {
+//                        $t_default_assign_to = $t_bug->reporter_id;
+//                    }
+//                }
+//                
+//                echo '<td class="center">';
+//                echo "<form method=\"post\" action=\"bug_assign.php\">";
+//                echo form_security_field( 'bug_assign' );
+//
+//                $t_button_text = lang_get( 'bug_assign_to_button' );
+//                echo "<input type=\"submit\" class=\"button\" value=\"$t_button_text\" />";
+//
+//                echo " <select name=\"handler_id\">";
+//
+//                # space at beginning of line is important
+//
+//                $t_already_selected = false;
+//
+//                foreach( $t_options as $t_entry ) {
+//                    $t_id      = string_attribute( $t_entry[0] );
+//                    $t_caption = string_attribute( $t_entry[1] );
+//
+//                    # if current user and reporter can't be selected, then select the first
+//                    # user in the list.
+//                    if( $t_default_assign_to === null ) {
+//                        $t_default_assign_to = $t_id;
+//                    }
+//
+//                    echo '<option value="' . $t_id . '" ';
+//
+//                    if( ( $t_id == $t_default_assign_to ) && !$t_already_selected ) {
+//                        check_selected( $t_id, $t_default_assign_to );
+//                        $t_already_selected = true;
+//                    }
+//
+//                    echo '>' . $t_caption . '</option>';
+//                }
+//
+//                # allow un-assigning if already assigned.
+//                if( $t_bug->handler_id != 0 ) {
+//                    echo "<option value=\"0\"></option>";
+//                }
+//
+//                # 0 means currently selected
+//                print_assign_to_option_list( 0, $t_bug->project_id );
+//                echo "</select>";
+//
+//                $t_bug_id = string_attribute( $t_bug->id );
+//                echo "<input type=\"hidden\" name=\"bug_id\" value=\"$t_bug_id\" />\n";
+//
+//                echo "</form>\n";
+//                echo '</td>';
+//            } else {
+//                return;
+//            }
+//        }
 }

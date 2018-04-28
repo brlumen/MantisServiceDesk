@@ -132,6 +132,20 @@ print_manage_menu( );
 	</td>
 </tr>
 
+<tr <?php echo helper_alternate_class( )?>>
+	<td class="category" width="60%">
+		<?php echo plugin_lang_get( 'file_upload_multiple_title' )?>
+	</td>
+	<td class="center" width="20%">
+		<label><input type="radio" name="file_upload_multiple" value="1" <?php echo( TRUE == plugin_config_get( 'file_upload_multiple' ) ) ? 'checked="checked" ' : ''?>/>
+			<?php echo plugin_lang_get( 'enabled' )?></label>
+	</td>
+	<td class="center" width="20%">
+		<label><input type="radio" name="file_upload_multiple" value="0" <?php echo( FALSE == plugin_config_get( 'file_upload_multiple' ) ) ? 'checked="checked" ' : ''?>/>
+			<?php echo plugin_lang_get( 'disabled' )?></label>
+	</td>
+</tr>
+
 <tr>
 	<td class="center" colspan="3">
 		<input type="submit" class="button" value="<?php echo lang_get( 'change_configuration' )?>" />
