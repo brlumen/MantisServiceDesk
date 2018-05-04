@@ -25,6 +25,7 @@ $s_plugin_MantisServiceDesk_check_comments = 'Включить обязател�
 $s_plugin_MantisServiceDesk_status_block = 'Даем выбрать ответственного только при переводе инцидента в статусы:';
 $s_plugin_MantisServiceDesk_bug_monitor_run_title = 'Включить отслеживание заявки при назначении ответственного:';
 $s_plugin_MantisServiceDesk_file_upload_multiple_title = 'Разрешить загрузку нескольких файлов';
+$s_plugin_MantisServiceDesk_projects_id_event_report_access = 'Проекты с запретом создания заявок:';
 
 $s_plugin_MantisServiceDesk_enabled = 'Да';
 $s_plugin_MantisServiceDesk_disabled = 'Нет';
