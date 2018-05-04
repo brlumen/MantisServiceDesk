@@ -26,6 +26,7 @@ $f_bug_status                         = gpc_get_int( 'bug_status' );
 $f_bug_status_block_assignation_array = gpc_get_int_array( 'bug_status_block_assignation_array', NULL );
 $f_bug_monitor_run                    = gpc_get_bool( 'bug_monitor_run', plugin_config_get( 'bug_monitor_run' ) );
 $f_file_upload_multiple               = gpc_get_bool( 'file_upload_multiple', plugin_config_get( 'file_upload_multiple' ) );
+$f_project_id_report_access           = gpc_get_int_array( 'project_id_report_access', plugin_config_get( 'projects_id_event_report_access' ) );
 
 if( plugin_config_get( 'process_disable_project' ) != $f_process_disable_project ) {
     plugin_config_set( 'process_disable_project', $f_process_disable_project );
@@ -53,6 +54,10 @@ if( plugin_config_get( 'bug_monitor_run' ) != $f_bug_monitor_run ) {
 
 if( plugin_config_get( 'file_upload_multiple' ) != $f_file_upload_multiple ) {
     plugin_config_set( 'file_upload_multiple', $f_file_upload_multiple );
+}
+
+if( plugin_config_get( 'projects_id_event_report_access' ) != $f_project_id_report_access ) {
+    plugin_config_set( 'projects_id_event_report_access', $f_project_id_report_access );
 }
 
 form_security_purge( 'service_desk_config_edit' );

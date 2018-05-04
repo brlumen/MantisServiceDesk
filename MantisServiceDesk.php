@@ -22,7 +22,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
         $this->description = plugin_lang_get( 'description' );
         $this->page        = 'config';
 
-        $this->version  = '1.3.3';
+        $this->version  = '1.4.0';
         $this->requires = array(
                                   'MantisCore' => '1.2.12',
                                   'jQuery'     => '1.11.1'
@@ -46,6 +46,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
                                   'bug_status_block_assignation_array' => array( 0 => 50 ),
                                   'bug_monitor_run'                    => TRUE,
                                   'file_upload_multiple'               => TRUE,
+                                  'projects_id_event_report_access'    => array( NULL ),
         );
     }
 
@@ -66,11 +67,24 @@ class MantisServiceDeskPlugin extends MantisPlugin {
                                   'EVENT_MANAGE_PROJECT_UPDATE'  => 'subprojects_change_status_enabled',
                                   'EVENT_UPDATE_BUG_STATUS_FORM' => array( 'issue_assignate_to',
                                                             'add_me_to_monitor_form' ),
-                                  'EVENT_VIEW_BUG_EXTRA'         => 'file_upload_multiple_options',
+                                  'EVENT_LAYOUT_CONTENT_END'     => 'file_upload_multiple_options',
+                                  'EVENT_REPORT_BUG_FORM_TOP'    => 'event_report_bug_project_access',
+                                  'EVENT_MENU_MANAGE'            => 'config_menu',
         );
 
 
         return $hooks;
+    }
+
+    function config_menu() {
+        return array( '<a href="' . plugin_page( 'config' ) . '">' . plugin_lang_get( 'config' ) . ': ' . plugin_lang_get( 'name' ) . '</a>', );
+    }
+
+    function event_report_bug_project_access( $p_type_event, array $p_project_id ) {
+
+        if( in_array( $p_project_id, plugin_config_get( 'projects_id_event_report_access' ) ) ) {
+            print_header_redirect( '/login_select_proj_page.php?ref=bug_report_page.php' );
+        }
     }
 
     function file_upload_multiple_options( $p_type_event, array $p_bug_id ) {
