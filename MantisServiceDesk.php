@@ -24,7 +24,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
         $this->description = plugin_lang_get( 'description' );
         $this->page        = 'config';
 
-        $this->version  = '1.5.0';
+        $this->version  = '1.6.0';
         $this->requires = array(
                                   'MantisCore' => '1.2.12',
                                   'jQuery'     => '1.11.1'
@@ -58,7 +58,73 @@ class MantisServiceDeskPlugin extends MantisPlugin {
     }
 
     function init() {
-        
+
+        function custom_function_override_print_column_value( $p_column, $p_bug, $p_columns_target = COLUMNS_TARGET_VIEW_PAGE ) {
+
+            switch( $p_column ) {
+
+                case 'last_updated':
+                    global $t_filter;
+
+                    $time_last_updated = string_display_line( date( config_get( 'short_date_format' ), $p_bug->last_updated ) );
+                    $time_now          = string_display_line( date( config_get( 'short_date_format' ), time() ) );
+
+                    if( $time_now == $time_last_updated )
+                        $t_last_updated = 'Сегодня<br>' . string_display_line( date( 'H:i', $p_bug->last_updated ) );
+                    else
+                        $t_last_updated = string_display_line( date( config_get( 'short_date_format' ), $p_bug->last_updated ) ) . '<br>' .
+                                string_display_line( date( 'H:i', $p_bug->last_updated ) );
+
+                    echo '<td style="white-space: nowrap;">';
+                    if( $p_bug->last_updated > strtotime( '-' . $t_filter['highlight_changed'] . ' hours' ) ) {
+                        printf( '<span class="bold">%s</span>', $t_last_updated );
+                    } else {
+                        echo $t_last_updated;
+                    }
+                    echo '</td>';
+                    break;
+
+                case 'status':
+                    echo '<td style="white-space: nowrap;">';
+                    printf( '<span class="issue-status" title="%s">%s</span><br /> ', get_enum_element( 'resolution', $p_bug->resolution, auth_get_current_user_id(), $p_bug->project_id ), get_enum_element( 'status', $p_bug->status, auth_get_current_user_id(), $p_bug->project_id )
+                    );
+
+                    # print username instead of status
+                    if( ( ON == config_get( 'show_assigned_names' ) ) && ( $p_bug->handler_id > 0 ) && ( access_has_project_level( config_get( 'view_handler_threshold' ), $p_bug->project_id ) ) ) {
+                        printf( ' (%s)', prepare_user_name( $p_bug->handler_id ) );
+                    }
+                    echo '</td>';
+                    break;
+
+                case 'category_id':
+                    global $t_sort, $t_dir;
+
+                    # grab the project name
+                    $t_project_name  = project_get_field( $p_bug->project_id, 'name' );
+                    $t_reporter_name = prepare_user_name( $p_bug->reporter_id );
+
+                    echo '<td class="center">';
+
+                    # type project name if viewing 'all projects' or if issue is in a subproject
+                    if( ON == config_get( 'show_bug_project_links' ) && helper_get_current_project() != $p_bug->project_id ) {
+                        echo '[';
+                        print_view_bug_sort_link( string_display_line( $t_project_name ), 'project_id', $t_sort, $t_dir, $p_columns_target );
+                        echo ']-';
+                        echo '-[';
+                        echo $t_reporter_name;
+                        echo ']<br />';
+                    }
+
+                    echo string_display_line( category_full_name( $p_bug->category_id, false ) );
+
+                    echo '</td>';
+                    break;
+
+                default:
+                    custom_function_default_print_column_value( $p_column, $p_bug, $p_columns_target );
+            }
+        }
+
     }
 
     function hooks() {
@@ -134,7 +200,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
                             <form method="post" action="<?php echo plugin_page( 'bug_monitor_add' ) ?>">
                                 <?php echo form_security_field( 'bug_monitor_add' ) ?>
                                 <input type="hidden" name="bug_id" value="<?php echo (integer) $p_bug_id; ?>" />
-                                <?php //Мультиселект. Можно выбрать несколько отслеживающих пользователей    ?>
+                                <?php //Мультиселект. Можно выбрать несколько отслеживающих пользователей           ?>
                                 <?php if( is_array( $project_users ) && count( $project_users ) > 0 ): ?>			
                                     <select size="8" multiple name="user_ids[]">
                                         <?php foreach( $project_users as $project_user ): ?>
