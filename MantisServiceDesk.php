@@ -24,7 +24,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
         $this->description = plugin_lang_get( 'description' );
         $this->page        = 'config';
 
-        $this->version  = '1.6.0';
+        $this->version  = '1.7.0';
         $this->requires = array(
                                   'MantisCore' => '1.2.12',
                                   'jQuery'     => '1.11.1'
@@ -139,10 +139,18 @@ class MantisServiceDeskPlugin extends MantisPlugin {
                                   'EVENT_REPORT_BUG_FORM_TOP'    => 'event_report_bug_project_access',
                                   'EVENT_MENU_MANAGE'            => 'config_menu',
                                   'EVENT_VIEW_BUG_EXTRA'         => 'bug_monitor_list_view',
+                                  'EVENT_MANAGE_PROJECT_CREATE'  => 'create_project_copy_users',
         );
-
-
         return $hooks;
+    }
+
+    function create_project_copy_users( $p_type_event, $p_project_id ) {
+
+        $t_parent_id = project_hierarchy_get_parent( $p_project_id, TRUE );
+
+        if( 0 != $t_parent_id ) {
+            project_copy_users( $p_project_id, $t_parent_id, access_get_project_level( $p_project_id ) );
+        }
     }
 
     function bug_monitor_list_view( $p_type_event, $p_bug_id ) {
