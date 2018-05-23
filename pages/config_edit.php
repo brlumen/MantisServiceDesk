@@ -60,21 +60,14 @@ if( plugin_config_get( 'projects_id_event_report_access' ) != $f_project_id_repo
     plugin_config_set( 'projects_id_event_report_access', $f_project_id_report_access );
 }
 
-form_security_purge( 'service_desk_config_edit' );
+form_security_purge( plugin_page( 'config', true )  );
 
-html_page_top( null, plugin_page( 'config', true ) );
-//print_successful_redirect( plugin_page( 'config', true ) );
-//print_header_redirect( plugin_page( 'config', true ) );
-?>
+$t_redirect_url = plugin_page( 'config', true );
 
+layout_page_header( null, $t_redirect_url );
 
-<div align="center">
-    <?php
-    echo lang_get( 'operation_successful' ) . '<br />';
+layout_page_begin( $t_redirect_url );
 
-    print_bracket_link( plugin_page( 'config', true ), lang_get( 'proceed' ) );
-    ?>
-</div>
+html_operation_successful( $t_redirect_url );
 
-<?php
-html_page_bottom();
+layout_page_end();

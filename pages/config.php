@@ -17,156 +17,182 @@
 auth_reauthenticate();
 access_ensure_global_level( config_get( 'manage_plugin_threshold' ) );
 
-html_page_top( plugin_lang_get( 'name' ) );
+layout_page_header( plugin_lang_get( 'name' ) );
+
+layout_page_begin( 'manage_overview_page.php' );
 
 print_manage_menu();
 ?>
 
-<br />
-<form action="<?php echo plugin_page( 'config_edit' ) ?>" method="post">
-    <?php echo form_security_field( 'service_desk_config_edit' ) ?>
-    <table align="center" class="width50" cellspacing="1">
+<div class="col-md-12 col-xs-12">
+    <div class="space-10"></div>
+    <div class="form-container">
+        <form action="<?php echo plugin_page( 'config_edit' ) ?>" method="post">
+            <?php echo form_security_field( 'service_desk_config_edit' ) ?>
+            <div class="widget-box widget-color-blue2">
+                <div class="widget-header widget-header-small">
+                    <h4 class="widget-title lighter">
+                        <i class="ace-icon fa fa-cubes"></i>
+                        <?php echo plugin_lang_get( 'name' ) . ': ' . plugin_lang_get( 'config' ) ?>
+                    </h4>
+                </div>
 
-        <tr>
-            <td class="form-title" colspan="3">
-                <?php echo plugin_lang_get( 'name' ) . ': ' . plugin_lang_get( 'config' ) ?>
-            </td>
-        </tr>
+                <div class="widget-body">
+                    <div class="widget-main no-padding">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered table-condensed table-hover">
+                                <colgroup>
+                                    <col style="width:25%" />
+                                    <col style="width:25%" />
+                                    <col style="width:25%" />
+                                </colgroup>
 
-        <tr <?php echo helper_alternate_class() ?>>
+                                <tr <?php echo helper_alternate_class() ?>>
+                                    <td class="category" width="60%">
+                                        <?php echo plugin_lang_get( 'process_disable_project' ) ?>
+                                    </td>
+                                    <td class="center" width="20%">
+                                        <label><input type="radio" name="process_disable_project" value="1" <?php echo( TRUE == plugin_config_get( 'process_disable_project' ) ) ? 'checked="checked" ' : '' ?>/>
+                                            <?php echo plugin_lang_get( 'enabled' ) ?></label>
+                                    </td>
+                                    <td class="center" width="20%">
+                                        <label><input type="radio" name="process_disable_project" value="0" <?php echo( FALSE == plugin_config_get( 'process_disable_project' ) ) ? 'checked="checked" ' : '' ?>/>
+                                            <?php echo plugin_lang_get( 'disabled' ) ?></label>
+                                    </td>
+                                </tr>
+
+
+
+                                <tr <?php echo helper_alternate_class() ?>>
+                                    <td class="category" width="60%">
+                                        <?php echo plugin_lang_get( 'check_comments' ) ?>
+                                    </td>
+                                    <td class="center" width="20%">
+                                        <label><input type="radio" name="check_comments" value="1" <?php echo( TRUE == plugin_config_get( 'check_comments' ) ) ? 'checked="checked" ' : '' ?>/>
+                                            <?php echo plugin_lang_get( 'enabled' ) ?></label>
+                                    </td>
+                                    <td class="center" width="20%">
+                                        <label><input type="radio" name="check_comments" value="0" <?php echo( FALSE == plugin_config_get( 'check_comments' ) ) ? 'checked="checked" ' : '' ?>/>
+                                            <?php echo plugin_lang_get( 'disabled' ) ?></label>
+                                    </td>
+                                </tr>
+
+                                <tr <?php echo helper_alternate_class() ?> >
+                                    <td class="category">
+                                        <?php echo plugin_lang_get( 'status_to' ) ?>
+                                    </td>
+                                    <td style="vertical-align: top">
+                                        <?php
+                                        $t_temp = MantisEnum::getAssocArrayIndexedByValues( lang_get( 'status_enum_string' ) );
+                                        $tt     = plugin_config_get( 'bug_status_array' );
+
+                                        foreach( MantisEnum::getAssocArrayIndexedByValues( config_get( 'status_enum_string' ) ) as $t_index_enum => $t_status_enum ) {
+                                            ?>
+
+                                            <label><input type="checkbox" name="bug_status_array[]" value="<?php echo $t_index_enum ?>" <?php echo( TRUE == ( $tt == null ? FALSE : in_array( $t_index_enum, $tt ) ) ) ? 'checked="checked" ' : '' ?>/><?php echo $t_temp[$t_index_enum] ?></label>
+                                            <br>
+
+                                        <?php } ?>
+                                    </td>
+                                    <td style="vertical-align: top">
+                                        <?php
+                                        $t_temp = MantisEnum::getAssocArrayIndexedByValues( lang_get( 'status_enum_string' ) );
+                                        $tt     = plugin_config_get( 'bug_status' );
+
+                                        foreach( MantisEnum::getAssocArrayIndexedByValues( config_get( 'status_enum_string' ) ) as $t_index_enum => $t_status_enum ) {
+                                            ?>
+
+                                            <label><input type="radio" name="bug_status" value="<?php echo $t_index_enum ?>" <?php echo $tt == $t_index_enum ? 'checked="checked" ' : '' ?>/><?php echo $t_temp[$t_index_enum] ?></label>
+                                            <br>
+
+                                        <?php } ?>
+                                    </td>
+                                </tr>
+
+
+
+
+                                <tr <?php echo helper_alternate_class() ?> >
+                                    <td class="category">
+                                        <?php echo plugin_lang_get( 'status_block' ) ?>
+                                    </td>
+                                    <td colspan="1" style="vertical-align: top">
+                                        <?php
+                                        $t_temp = MantisEnum::getAssocArrayIndexedByValues( lang_get( 'status_enum_string' ) );
+                                        $tt     = plugin_config_get( 'bug_status_block_assignation_array' );
+
+                                        foreach( MantisEnum::getAssocArrayIndexedByValues( config_get( 'status_enum_string' ) ) as $t_index_enum => $t_status_enum ) {
+                                            ?>
+
+                                            <label><input type="checkbox" name="bug_status_block_assignation_array[]" value="<?php echo $t_index_enum ?>" <?php echo( TRUE == ( $tt == null ? FALSE : in_array( $t_index_enum, $tt ) ) ) ? 'checked="checked" ' : '' ?>/><?php echo $t_temp[$t_index_enum] ?></label>
+                                            <br>
+
+                                        <?php } ?>
+                                    </td>
+                                    <td style="vertical-align: top"></td>
+                                </tr>
+
+                                <tr <?php echo helper_alternate_class() ?>>
+                                    <td class="category" width="60%">
+                                        <?php echo plugin_lang_get( 'bug_monitor_run_title' ) ?>
+                                    </td>
+                                    <td class="center" width="20%">
+                                        <label><input type="radio" name="bug_monitor_run" value="1" <?php echo( TRUE == plugin_config_get( 'bug_monitor_run' ) ) ? 'checked="checked" ' : '' ?>/>
+                                            <?php echo plugin_lang_get( 'enabled' ) ?></label>
+                                    </td>
+                                    <td class="center" width="20%">
+                                        <label><input type="radio" name="bug_monitor_run" value="0" <?php echo( FALSE == plugin_config_get( 'bug_monitor_run' ) ) ? 'checked="checked" ' : '' ?>/>
+                                            <?php echo plugin_lang_get( 'disabled' ) ?></label>
+                                    </td>
+                                </tr>
+
+<!--        <tr <?php echo helper_alternate_class() ?>>
             <td class="category" width="60%">
-                <?php echo plugin_lang_get( 'process_disable_project' ) ?>
-            </td>
-            <td class="center" width="20%">
-                <label><input type="radio" name="process_disable_project" value="1" <?php echo( TRUE == plugin_config_get( 'process_disable_project' ) ) ? 'checked="checked" ' : '' ?>/>
-                    <?php echo plugin_lang_get( 'enabled' ) ?></label>
-            </td>
-            <td class="center" width="20%">
-                <label><input type="radio" name="process_disable_project" value="0" <?php echo( FALSE == plugin_config_get( 'process_disable_project' ) ) ? 'checked="checked" ' : '' ?>/>
-                    <?php echo plugin_lang_get( 'disabled' ) ?></label>
-            </td>
-        </tr>
-
-
-        <tr <?php echo helper_alternate_class() ?>>
-            <td class="category" width="60%">
-                <?php echo plugin_lang_get( 'check_comments' ) ?>
-            </td>
-            <td class="center" width="20%">
-                <label><input type="radio" name="check_comments" value="1" <?php echo( TRUE == plugin_config_get( 'check_comments' ) ) ? 'checked="checked" ' : '' ?>/>
-                    <?php echo plugin_lang_get( 'enabled' ) ?></label>
-            </td>
-            <td class="center" width="20%">
-                <label><input type="radio" name="check_comments" value="0" <?php echo( FALSE == plugin_config_get( 'check_comments' ) ) ? 'checked="checked" ' : '' ?>/>
-                    <?php echo plugin_lang_get( 'disabled' ) ?></label>
-            </td>
-        </tr>
-
-        <tr <?php echo helper_alternate_class() ?> >
-            <td class="category">
-                <?php echo plugin_lang_get( 'status_to' ) ?>
-            </td>
-            <td style="vertical-align: top">
-                <?php
-                $t_temp = MantisEnum::getAssocArrayIndexedByValues( lang_get( 'status_enum_string' ) );
-                $tt     = plugin_config_get( 'bug_status_array' );
-
-                foreach( MantisEnum::getAssocArrayIndexedByValues( config_get( 'status_enum_string' ) ) as $t_index_enum => $t_status_enum ) {
-                    ?>
-
-                    <label><input type="checkbox" name="bug_status_array[]" value="<?php echo $t_index_enum ?>" <?php echo( TRUE == ( $tt == null ? FALSE : in_array( $t_index_enum, $tt ) ) ) ? 'checked="checked" ' : '' ?>/><?php echo $t_temp[$t_index_enum] ?></label>
-                    <br>
-
-                <?php } ?>
-            </td>
-            <td style="vertical-align: top">
-                <?php
-                $t_temp = MantisEnum::getAssocArrayIndexedByValues( lang_get( 'status_enum_string' ) );
-                $tt     = plugin_config_get( 'bug_status' );
-
-                foreach( MantisEnum::getAssocArrayIndexedByValues( config_get( 'status_enum_string' ) ) as $t_index_enum => $t_status_enum ) {
-                    ?>
-
-                    <label><input type="radio" name="bug_status" value="<?php echo $t_index_enum ?>" <?php echo $tt == $t_index_enum ? 'checked="checked" ' : '' ?>/><?php echo $t_temp[$t_index_enum] ?></label>
-                    <br>
-
-                <?php } ?>
-            </td>
-        </tr>
-
-
-
-
-        <tr <?php echo helper_alternate_class() ?> >
-            <td class="category">
-                <?php echo plugin_lang_get( 'status_block' ) ?>
-            </td>
-            <td colspan="1" style="vertical-align: top">
-                <?php
-                $t_temp = MantisEnum::getAssocArrayIndexedByValues( lang_get( 'status_enum_string' ) );
-                $tt     = plugin_config_get( 'bug_status_block_assignation_array' );
-
-                foreach( MantisEnum::getAssocArrayIndexedByValues( config_get( 'status_enum_string' ) ) as $t_index_enum => $t_status_enum ) {
-                    ?>
-
-                    <label><input type="checkbox" name="bug_status_block_assignation_array[]" value="<?php echo $t_index_enum ?>" <?php echo( TRUE == ( $tt == null ? FALSE : in_array( $t_index_enum, $tt ) ) ) ? 'checked="checked" ' : '' ?>/><?php echo $t_temp[$t_index_enum] ?></label>
-                    <br>
-
-                <?php } ?>
-            </td>
-            <td style="vertical-align: top"></td>
-        </tr>
-
-        <tr <?php echo helper_alternate_class() ?>>
-            <td class="category" width="60%">
-                <?php echo plugin_lang_get( 'bug_monitor_run_title' ) ?>
-            </td>
-            <td class="center" width="20%">
-                <label><input type="radio" name="bug_monitor_run" value="1" <?php echo( TRUE == plugin_config_get( 'bug_monitor_run' ) ) ? 'checked="checked" ' : '' ?>/>
-                    <?php echo plugin_lang_get( 'enabled' ) ?></label>
-            </td>
-            <td class="center" width="20%">
-                <label><input type="radio" name="bug_monitor_run" value="0" <?php echo( FALSE == plugin_config_get( 'bug_monitor_run' ) ) ? 'checked="checked" ' : '' ?>/>
-                    <?php echo plugin_lang_get( 'disabled' ) ?></label>
-            </td>
-        </tr>
-
-        <tr <?php echo helper_alternate_class() ?>>
-            <td class="category" width="60%">
-                <?php echo plugin_lang_get( 'file_upload_multiple_title' ) ?>
+                                <?php echo plugin_lang_get( 'file_upload_multiple_title' ) ?>
             </td>
             <td class="center" width="20%">
                 <label><input type="radio" name="file_upload_multiple" value="1" <?php echo( TRUE == plugin_config_get( 'file_upload_multiple' ) ) ? 'checked="checked" ' : '' ?>/>
-                    <?php echo plugin_lang_get( 'enabled' ) ?></label>
+                                <?php echo plugin_lang_get( 'enabled' ) ?></label>
             </td>
             <td class="center" width="20%">
                 <label><input type="radio" name="file_upload_multiple" value="0" <?php echo( FALSE == plugin_config_get( 'file_upload_multiple' ) ) ? 'checked="checked" ' : '' ?>/>
-                    <?php echo plugin_lang_get( 'disabled' ) ?></label>
+                                <?php echo plugin_lang_get( 'disabled' ) ?></label>
             </td>
-        </tr>
+        </tr>-->
 
-        <tr <?php echo helper_alternate_class() ?>>
-            <td class="category" width="60%">
-                <?php echo plugin_lang_get( 'projects_id_event_report_access' ) ?>
+                                <tr <?php echo helper_alternate_class() ?>>
+                                    <td class="category" width="60%">
+                                        <?php echo plugin_lang_get( 'projects_id_event_report_access' ) ?>
 
-            </td>
-            <td colspan="2" width="20%">
-                <select name="project_id_report_access[]" size="10" multiple="multiple">
-                    <?php
-                    print_project_option_list( plugin_config_get( 'projects_id_event_report_access' ), FALSE );
-                    ?>
-                </select>
-            </td>
-        </tr>
+                                    </td>
+                                    <td colspan="2" width="20%">
+                                        <select name="project_id_report_access[]" size="10" multiple="multiple">
+                                            <?php
+                                            print_project_option_list( plugin_config_get( 'projects_id_event_report_access' ), FALSE );
+                                            ?>
+                                        </select>
+                                    </td>
+                                </tr>
 
-        <tr>
-            <td class="center" colspan="3">
-                <input type="submit" class="button" value="<?php echo lang_get( 'change_configuration' ) ?>" />
-            </td>
-        </tr>
+                                <tr>
+                                    <td class="center" colspan="3">
+                                        <input type="submit" class="button" value="<?php echo lang_get( 'change_configuration' ) ?>" />
+                                    </td>
+                                </tr>
 
-    </table>
-</form>
+                            </table>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 <?php
-html_page_bottom();
+if( !function_exists( 'html_page_bottom' ) ) {
+    layout_page_end();
+} else {
+    html_page_bottom();
+}

@@ -24,10 +24,9 @@ class MantisServiceDeskPlugin extends MantisPlugin {
         $this->description = plugin_lang_get( 'description' );
         $this->page        = 'config';
 
-        $this->version  = '1.7.0';
+        $this->version  = '1.8.0';
         $this->requires = array(
-                                  'MantisCore' => '1.2.12',
-                                  'jQuery'     => '1.11.1'
+                                  'MantisCore' => '2.0',
         );
 
         $this->author  = 'Grigoriy Ermolaev';
@@ -49,6 +48,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
                                   'bug_monitor_run'                    => TRUE,
                                   'file_upload_multiple'               => TRUE,
                                   'projects_id_event_report_access'    => array( NULL ),
+                                  'bug_submit_status'                   => ASSIGNED,
         );
     }
 
@@ -84,17 +84,17 @@ class MantisServiceDeskPlugin extends MantisPlugin {
                     echo '</td>';
                     break;
 
-                case 'status':
-                    echo '<td style="white-space: nowrap;">';
-                    printf( '<span class="issue-status" title="%s">%s</span><br /> ', get_enum_element( 'resolution', $p_bug->resolution, auth_get_current_user_id(), $p_bug->project_id ), get_enum_element( 'status', $p_bug->status, auth_get_current_user_id(), $p_bug->project_id )
-                    );
-
-                    # print username instead of status
-                    if( ( ON == config_get( 'show_assigned_names' ) ) && ( $p_bug->handler_id > 0 ) && ( access_has_project_level( config_get( 'view_handler_threshold' ), $p_bug->project_id ) ) ) {
-                        printf( ' (%s)', prepare_user_name( $p_bug->handler_id ) );
-                    }
-                    echo '</td>';
-                    break;
+//                case 'status':
+//                    echo '<td style="white-space: nowrap;">';
+//                    printf( '<span class="issue-status" title="%s">%s</span><br /> ', get_enum_element( 'resolution', $p_bug->resolution, auth_get_current_user_id(), $p_bug->project_id ), get_enum_element( 'status', $p_bug->status, auth_get_current_user_id(), $p_bug->project_id )
+//                    );
+//
+//                    # print username instead of status
+//                    if( ( ON == config_get( 'show_assigned_names' ) ) && ( $p_bug->handler_id > 0 ) && ( access_has_project_level( config_get( 'view_handler_threshold' ), $p_bug->project_id ) ) ) {
+//                        printf( ' (%s)', prepare_user_name( $p_bug->handler_id ) );
+//                    }
+//                    echo '</td>';
+//                    break;
 
                 case 'category_id':
                     global $t_sort, $t_dir;
@@ -130,18 +130,32 @@ class MantisServiceDeskPlugin extends MantisPlugin {
     function hooks() {
         $hooks = array(
                                   'EVENT_MENU_ISSUE'             => 'change_issue',
-                                  'EVENT_UPDATE_BUG'             => array( 'check_issue',
-                                                            'bug_monitor_add' ),
+                                  'EVENT_UPDATE_BUG_DATA'        => array( 'check_issue',
+                                                            'bug_assignation_to_policy' ),
+                                  'EVENT_UPDATE_BUG'             => 'bug_monitor_add',
                                   'EVENT_MANAGE_PROJECT_UPDATE'  => 'subprojects_change_status_enabled',
                                   'EVENT_UPDATE_BUG_STATUS_FORM' => array( 'issue_assignate_to',
                                                             'add_me_to_monitor_form' ),
-                                  'EVENT_LAYOUT_CONTENT_END'     => 'file_upload_multiple_options',
                                   'EVENT_REPORT_BUG_FORM_TOP'    => 'event_report_bug_project_access',
                                   'EVENT_MENU_MANAGE'            => 'config_menu',
                                   'EVENT_VIEW_BUG_EXTRA'         => 'bug_monitor_list_view',
                                   'EVENT_MANAGE_PROJECT_CREATE'  => 'create_project_copy_users',
+                                  'EVENT_LAYOUT_BODY_END'        => 'resources',
+                                  'EVENT_LAYOUT_BODY_BEGIN'      => 'load_variables_to_manage_proj_edit_page',
         );
         return $hooks;
+    }
+
+    function load_variables_to_manage_proj_edit_page() {
+        echo '<div id="manage_proj_user_add_var" value=' . plugin_page( 'manage_proj_user_add' ) . '></div>';
+        echo '<div id="manage_proj_user_remove_var" value=' . plugin_page( 'manage_proj_user_remove' ) . '></div>';
+
+        echo '<div id="manage_user_proj_add_var" value=' . plugin_page( 'manage_user_proj_add' ) . '></div>';
+        echo '<div id="manage_user_proj_delete_var" value=' . plugin_page( 'manage_user_proj_delete' ) . '></div>';
+    }
+
+    function resources() {
+        return '<script type="text/javascript" src="' . plugin_file( 'MantisServiceDesk.js' ) . '"></script>';
     }
 
     function create_project_copy_users( $p_type_event, $p_project_id ) {
@@ -154,122 +168,22 @@ class MantisServiceDeskPlugin extends MantisPlugin {
     }
 
     function bug_monitor_list_view( $p_type_event, $p_bug_id ) {
-        ?> 
-        <script>
-            if (document.getElementsByName("monitors").length > 0) {
-                document.getElementsByName("monitors")[0].hidden = true;
-            }
 
-        </script>
-        <?php
-        if( access_has_bug_level( config_get( 'show_monitor_list_threshold' ), $p_bug_id ) ) {
-
-            $t_users   = bug_get_monitors( $p_bug_id );
-            $num_users = sizeof( $t_users );
-
-            echo '<a name="monitors_by_service_desk" id="monitors_by_service_desk" /><br />';
-
-            collapse_open( 'monitoring' );
-            ?>
-            <table class="width100" cellspacing="1">
-                <tr>
-                    <td class="form-title" colspan="2">
-                        <?php
-                        collapse_icon( 'monitoring' );
-                        ?>
-                        <?php echo lang_get( 'users_monitoring_bug' ); ?>
-                    </td>
-                </tr>
-                <tr class="row-1">
-                    <td class="category" width="15%">
-                        <?php echo lang_get( 'monitoring_user_list' ); ?>
-                    </td>
-                    <td>
-                        <?php
-                        if( 0 == $num_users ) {
-                            echo lang_get( 'no_users_monitoring_bug' );
-                        } else {
-                            $t_can_delete_others = access_has_bug_level( config_get( 'monitor_delete_others_bug_threshold' ), $p_bug_id );
-                            for( $i = 0; $i < $num_users; $i++ ) {
-                                echo ($i > 0) ? ', ' : '';
-                                echo print_user( $t_users[$i] );
-                                if( $t_can_delete_others ) {
-                                    echo ' [<a class="small" href="' . plugin_page( 'bug_monitor_delete' ) . '&bug_id=' . $p_bug_id . '&user_id=' . $t_users[$i] . form_security_param( 'bug_monitor_delete' ) . '">' . lang_get( 'delete_link' ) . '</a>]';
-                                }
-                            }
-                        }
-
-                        if( access_has_bug_level( config_get( 'monitor_add_others_bug_threshold' ), $p_bug_id ) ) {
-                            echo '<br /><br />', lang_get( 'username' );
-
-                            // Получаем массив пользователей, привязанных к текущему проекту
-                            $project_users = project_get_all_user_rows( bug_get_field( $p_bug_id, 'project_id' ) );
-                            ?>
-                            <form method="post" action="<?php echo plugin_page( 'bug_monitor_add' ) ?>">
-                                <?php echo form_security_field( 'bug_monitor_add' ) ?>
-                                <input type="hidden" name="bug_id" value="<?php echo (integer) $p_bug_id; ?>" />
-                                <?php //Мультиселект. Можно выбрать несколько отслеживающих пользователей           ?>
-                                <?php if( is_array( $project_users ) && count( $project_users ) > 0 ): ?>			
-                                    <select size="8" multiple name="user_ids[]">
-                                        <?php foreach( $project_users as $project_user ): ?>
-                                            <?php if( !empty( $project_user['id'] ) && !empty( $project_user['realname'] ) ): ?>
-                                                <option value="<?php echo $project_user['id']; ?>"><?php echo $project_user['realname']; ?></option>
-                                            <?php endif; ?>
-                                        <?php endforeach; ?>
-                                    </select><br><br>
-                                <?php endif; ?>
-
-                                <input type="submit" class="button" value="<?php echo lang_get( 'add_user_to_monitor' ) ?>" />
-                            </form>
-                        <?php } ?>
-                    </td>
-                </tr>
-            </table>
-            <?php
-            collapse_closed( 'monitoring' );
-            ?>
-            <table class="width100" cellspacing="1">
-                <tr>
-                    <td class="form-title" colspan="2"><?php collapse_icon( 'monitoring' ); ?>
-                        <?php echo lang_get( 'users_monitoring_bug' ); ?>
-                    </td>
-                </tr>
-            </table>
-            <?php
-            collapse_end( 'monitoring' );
-            ?>
-
-            <?php
-        } # show monitor list
+        include ( plugin_file_path( 'bug_monitor_list_view_inc.php', 'MantisServiceDesk' ));
     }
 
     function config_menu() {
         return array( '<a href="' . plugin_page( 'config' ) . '">' . plugin_lang_get( 'config' ) . ': ' . plugin_lang_get( 'name' ) . '</a>', );
     }
 
-    function event_report_bug_project_access( $p_type_event, array $p_project_id ) {
+    function event_report_bug_project_access( $p_type_event, $p_project_id ) {
 
         if( in_array( $p_project_id, plugin_config_get( 'projects_id_event_report_access' ) ) ) {
             print_header_redirect( '/login_select_proj_page.php?ref=bug_report_page.php' );
         }
     }
 
-    function file_upload_multiple_options( $p_type_event, array $p_bug_id ) {
-
-        if( plugin_config_get( 'file_upload_multiple' ) ) {
-            ?> 
-            <script>
-
-                if (document.getElementsByName("ufile[]").length > 0) {
-                    document.getElementsByName("ufile[]")[0].multiple = true;
-                }
-
-            </script>
-            <?php
-        }
-    }
-
-    function check_issue( $type_event, $t_bug_data, $f_bug_id ) {
+    function check_issue( $type_event, $p_updated_bug, $p_existing_bug ) {
 
         if( plugin_config_get( 'check_comments' ) ) {
             if( trim( $_REQUEST["bugnote_text"] ) == null && $_REQUEST["status"] != 90 && $_REQUEST["status"] != null ) {
@@ -277,6 +191,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
                 trigger_error( ERROR_EMPTY_FIELD, ERROR );
             }
         }
+        return $p_updated_bug;
     }
 
     function change_issue( $p_type_issue, $p_bug_id ) {
@@ -345,15 +260,8 @@ class MantisServiceDeskPlugin extends MantisPlugin {
             $t_new_status = gpc_get_int( 'new_status' );
 
             if( !in_array( $t_new_status, plugin_config_get( 'bug_status_block_assignation_array' ) ) ) {
-                ?>
 
-                <script>
-
-                    document.getElementsByName("handler_id")[0].disabled = true;
-
-                </script>
-
-                <?php
+                echo '<script type="text/javascript" src="' . plugin_file( 'MantisServiceDesk_1.js' ) . '"></script>';
             }
         }
     }
@@ -361,6 +269,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
     function add_me_to_monitor_form( $p_type_event, $p_bug_id ) {
 
         if( !bug_is_user_reporter( $p_bug_id, auth_get_current_user_id() ) && gpc_get_int( 'new_status' ) == 50 && plugin_config_get( 'bug_monitor_run' ) ) {
+            $temp;
             ?>
             <tr <?php echo helper_alternate_class() ?>>
                 <td class="category">Добавить меня в отслеживающие</td>
@@ -371,156 +280,29 @@ class MantisServiceDeskPlugin extends MantisPlugin {
         }
     }
 
-    function bug_monitor_add( $p_type_event, $p_bug_data, $p_bug_id ) {
+    function bug_monitor_add( $p_type_event, $p_existing_bug, $p_updated_bug ) {
 
         if( plugin_config_get( 'bug_monitor_run' ) ) {
 
             $f_add_monitor = gpc_get_bool( 'add_me_to_monitor', FALSE );
 
             if( $f_add_monitor ) {
-                bug_monitor( $p_bug_id, auth_get_current_user_id() );
+                bug_monitor( $p_updated_bug->id, auth_get_current_user_id() );
             }
 
-            if( in_array( $p_bug_data->handler_id, bug_get_monitors( $p_bug_id ) ) ) {
-                bug_unmonitor( $p_bug_id, $p_bug_data->handler_id );
+            if( in_array( $p_updated_bug->handler_id, bug_get_monitors( $p_updated_bug->id ) ) ) {
+                bug_unmonitor( $p_updated_bug->id, $p_updated_bug->handler_id );
             }
         }
     }
 
-//    function tima_tracking_extendet() {
-//
-//        if( $t_bug->status == 40 ) { // Если переводим состояние из статуса В работе, в любой другой
-//            // Получим историю изменений инцидента
-//            // Найдем последнее состояние, когда инцидент был переведен в статус В работе
-//            // Посчитаем время, которое инцидент провел в статусе В работе до нового статуса
-//            // Запишем время в Учет времени
-//
-//            require_once( 'history_api.php' );
-//
-//            // Получим историю изменений инцидента
-//            $arHistory          = history_get_events_array( $f_bug_id, null );
-//            $arStatusInWorkDate = array();
-//            // Найдем последнее состояние, когда инцидент был переведен в статус В работе
-//            foreach( $arHistory as $arStatus ) {
-//                if( $arStatus["note"] == 'Статус' && $arStatus["change"] == 'рассмотрен => В работе' ) {
-//                    $arStatusInWorkDate[] = $arStatus["date"];
-//                }
-//            }
-//
-//            $d1                  = new \DateTime( array_pop( $arStatusInWorkDate ) );
-//            $d2                  = new \DateTime( date( "Y-m-d H:i" ) );
-//            $hours               = $d1->diff( $d2 );
-//            $time_tracking_hours = $hours->format( '%m/%d/%h:%i' );
-//
-//            $time_tracking_hours = explode( "/", $time_tracking_hours );
-//
-//            $time_tracking_month         = $time_tracking_hours[0];
-//            $time_tracking_days          = $time_tracking_hours[1];
-//            $time_tracking_hours_minutes = explode( ":", $time_tracking_hours[2] );
-//            $time_tracking_hours         = $time_tracking_hours_minutes[0];
-//            $time_tracking_minutes       = $time_tracking_hours_minutes[1];
-//
-//            if( $time_tracking_hours > 5 ) {
-//                $errors_show = 'style="display:block;"';
-//                $errors_text = "Внимание! Затраченное время превышает 5ч!";
-//            }
-//
-//            if( $time_tracking_days > 0 )
-//                $time_tracking_hours = $time_tracking_days * 24;
-//            $time_tracking       = $time_tracking_hours . ":" . $time_tracking_minutes;
-//        }
-//        else {
-//            $time_tracking = "0:00";
-//        }
-//    }
-//    function custom_function_override_print_bug_view_page_custom_buttons( $p_bug_id ) {
-//
-//            $t_bug = bug_get( $p_bug_id );
-//
-//            # make sure status is allowed of assign would cause auto-set-status
-//            # workflow implementation
-//            if( ON == config_get( 'auto_set_status_to_assigned' ) && !bug_check_workflow( $t_bug->status, config_get( 'bug_assigned_status' ) ) ) {
-//
-//                # make sure current user has access to modify bugs.
-//                if( !access_has_bug_level( config_get( 'update_bug_assign_threshold', config_get( 'update_bug_threshold' ) ), $t_bug->id ) ) {
-//                    return;
-//                }
-//
-//                $t_current_user_id   = auth_get_current_user_id();
-//                $t_new_status        = ( ON == config_get( 'auto_set_status_to_assigned' ) ) ? config_get( 'bug_assigned_status' ) : $t_bug->status;
-//                $t_options           = array();
-//                $t_default_assign_to = null;
-//
-//                if( ( $t_bug->handler_id != $t_current_user_id ) && access_has_bug_level( config_get( 'handle_bug_threshold' ), $t_bug->id, $t_current_user_id )
-//                ) {
-//                    $t_options[]         = array(
-//                                              $t_current_user_id,
-//                                              '[' . lang_get( 'myself' ) . ']',
-//                    );
-//                    $t_default_assign_to = $t_current_user_id;
-//                }
-//
-//                if( ( $t_bug->handler_id != $t_bug->reporter_id ) && user_exists( $t_bug->reporter_id ) && access_has_bug_level( config_get( 'handle_bug_threshold' ), $t_bug->id, $t_bug->reporter_id )
-//                ) {
-//                    $t_options[] = array(
-//                                              $t_bug->reporter_id,
-//                                              '[' . lang_get( 'reporter' ) . ']',
-//                    );
-//
-//                    if( $t_default_assign_to === null ) {
-//                        $t_default_assign_to = $t_bug->reporter_id;
-//                    }
-//                }
-//                
-//                echo '<td class="center">';
-//                echo "<form method=\"post\" action=\"bug_assign.php\">";
-//                echo form_security_field( 'bug_assign' );
-//
-//                $t_button_text = lang_get( 'bug_assign_to_button' );
-//                echo "<input type=\"submit\" class=\"button\" value=\"$t_button_text\" />";
-//
-//                echo " <select name=\"handler_id\">";
-//
-//                # space at beginning of line is important
-//
-//                $t_already_selected = false;
-//
-//                foreach( $t_options as $t_entry ) {
-//                    $t_id      = string_attribute( $t_entry[0] );
-//                    $t_caption = string_attribute( $t_entry[1] );
-//
-//                    # if current user and reporter can't be selected, then select the first
-//                    # user in the list.
-//                    if( $t_default_assign_to === null ) {
-//                        $t_default_assign_to = $t_id;
-//                    }
-//
-//                    echo '<option value="' . $t_id . '" ';
-//
-//                    if( ( $t_id == $t_default_assign_to ) && !$t_already_selected ) {
-//                        check_selected( $t_id, $t_default_assign_to );
-//                        $t_already_selected = true;
-//                    }
-//
-//                    echo '>' . $t_caption . '</option>';
-//                }
-//
-//                # allow un-assigning if already assigned.
-//                if( $t_bug->handler_id != 0 ) {
-//                    echo "<option value=\"0\"></option>";
-//                }
-//
-//                # 0 means currently selected
-//                print_assign_to_option_list( 0, $t_bug->project_id );
-//                echo "</select>";
-//
-//                $t_bug_id = string_attribute( $t_bug->id );
-//                echo "<input type=\"hidden\" name=\"bug_id\" value=\"$t_bug_id\" />\n";
-//
-//                echo "</form>\n";
-//                echo '</td>';
-//            } else {
-//                return;
-//            }
-//        }
+    function bug_assignation_to_policy( $p_type_event, $p_updated_bug, $p_existing_bug ) {
+        if( $p_updated_bug->status == $p_existing_bug->status && $p_updated_bug->handler_id != $p_existing_bug->handler_id ) {
+            $p_updated_bug->status = plugin_config_get( 'bug_submit_status' );
+            return $p_updated_bug;
+        } else {
+            return $p_updated_bug;
+        }
+    }
+
 }
