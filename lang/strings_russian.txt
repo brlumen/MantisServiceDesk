@@ -15,7 +15,6 @@
 # along with Customer management plugin for MantisBT.  
 # If not, see <http://www.gnu.org/licenses/>.
 
-$s_plugin_MantisServiceDesk_error_empty_field = 'Комментарий';
 $s_plugin_MantisServiceDesk_name = 'Система учёта заявок';
 $s_plugin_MantisServiceDesk_description = 'Дополняет систему необходимыми функциями для использования в качестве системы учёта заявок';
 $s_plugin_MantisServiceDesk_config = 'Настройка';
