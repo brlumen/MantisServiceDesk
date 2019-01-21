@@ -24,7 +24,7 @@ class MantisServiceDeskPlugin extends MantisPlugin {
 		$this->description	 = plugin_lang_get( 'description' );
 		$this->page		 = 'config';
 
-		$this->version	 = '1.8.1-dev';
+		$this->version	 = '1.8.1';
 		$this->requires	 = array(
 					  'MantisCore' => '2.0',
 		);
